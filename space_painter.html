@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Space Painter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600&family=Nunito:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --panel: rgba(255,255,255,0.8);
+      --panel-border: rgba(255,255,255,0.7);
+      --accent: #7c9cf3;
+      --accent-2: #e3b7ff;
+      --text: #333;
+      --shadow: 0 10px 30px rgba(40, 40, 70, 0.25);
+    }
+    html, body {
+      margin: 0; height: 100%; overflow: hidden;
+      background: radial-gradient(1200px 800px at 20% 20%, #1d2444, #0c1229 45%, #060916 70%, #040510 100%);
+      font-family: 'Nunito', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+    }
+    #sky{ position: absolute; inset: 0; display:block; }
+
+    /* Whimsical floating panel */
+    .panel{
+      position: fixed; left: 20px; top: 20px; right: auto;
+      max-width: 360px; backdrop-filter: blur(10px);
+      background: var(--panel); border: 2px solid var(--panel-border);
+      border-radius: 22px; padding: 16px 16px 12px; box-shadow: var(--shadow);
+      animation: float 7s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
+
+    .title{ font-family: 'Baloo 2', cursive; font-size: 28px; margin: 0 0 10px; color: #fff; text-shadow: 0 2px 10px rgba(124,156,243,.55), 0 0 30px rgba(227,183,255,.35); }
+
+    .row{ display:flex; align-items:center; gap:10px; margin: 10px 0; flex-wrap: wrap; }
+    .btn{
+      border: 0; padding: 10px 12px; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 14px;
+      background: linear-gradient(180deg, #ffffff, #f1f3ff);
+      box-shadow: 0 2px 0 rgba(255,255,255,0.9) inset, 0 8px 16px rgba(0,0,0,0.12);
+      transition: transform .05s ease, box-shadow .2s ease;
+    }
+    .btn:active{ transform: translateY(1px) }
+    .btn[data-active="true"]{
+      outline: 2px solid var(--accent);
+      box-shadow: 0 2px 0 rgba(255,255,255,0.9) inset, 0 0 0 4px rgba(124,156,243,.25), 0 10px 18px rgba(0,0,0,0.18);
+    }
+    .chip{ padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,0.9); font-weight: 700; }
+    .slider{ width: 150px; accent-color: var(--accent) }
+    .toggle{ appearance: none; width:48px; height:28px; border-radius: 999px; position: relative; background: #dfe6ff; outline: 2px solid transparent; cursor: pointer; transition: background .2s ease; }
+    .toggle:checked{ background: linear-gradient(90deg, var(--accent), var(--accent-2)) }
+    .toggle::after{ content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; background:#fff; border-radius:50%; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition:left .2s ease }
+    .toggle:checked::after{ left:23px }
+    .label{ font-size: 13px; opacity: .9 }
+    .spacer{ flex:1 }
+    .hint{ font-size: 12px; opacity: .8; margin-top: 6px; color: #eef; text-shadow: 0 1px 8px rgba(124,156,243,.55); }
+
+    /* Cute floating tips */
+    .tip{
+      position: fixed; right: 18px; bottom: 18px; background: rgba(255,255,255,0.85);
+      border: 2px solid var(--panel-border); border-radius: 18px; padding: 10px 14px; box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: #eef2ff; padding:2px 6px; border-radius:8px; border:1px solid #dfe6ff }
+
+    /* Decorative glow orbs */
+    .orb{ position: fixed; pointer-events: none; filter: blur(50px); opacity: .35; }
+    .orb.one{ width: 280px; height: 280px; left: -40px; top: -30px; background: radial-gradient(circle at 30% 30%, #7c9cf3, transparent 60%) }
+    .orb.two{ width: 360px; height: 360px; right: -60px; top: 20vh; background: radial-gradient(circle at 60% 40%, #e3b7ff, transparent 60%) }
+    .orb.three{ width: 300px; height: 300px; left: 30vw; bottom: -120px; background: radial-gradient(circle at 50% 50%, #6bf7ff, transparent 60%) }
+
+    /* Mobile tweaks */
+    @media (max-width: 640px){
+      .panel{ left: 12px; right: 12px; max-width: none; top: 12px }
+      .row{ gap:8px }
+      .title{ font-size: 24px }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sky" aria-label="Space painting canvas" role="img"></canvas>
+
+  <!-- Soft glowing orbs for whimsy -->
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+  <div class="orb three"></div>
+
+  <section class="panel" aria-label="Controls">
+    <h1 class="title">✨ Space Painter</h1>
+    <div class="row" role="group" aria-label="Brushes">
+      <button class="btn" id="brush-star" data-active="true" title="Star brush">🌟 Star</button>
+      <button class="btn" id="brush-planet" title="Planet brush">🪐 Planet</button>
+      <button class="btn" id="brush-comet" title="Comet brush">☄️ Comet</button>
+      <button class="btn" id="brush-sparkle" title="Sparkle brush">✨ Sparkle</button>
+    </div>
+    <div class="row">
+      <span class="chip">Size</span>
+      <input class="slider" id="size" type="range" min="6" max="100" value="28" />
+      <span class="chip">Color</span>
+      <input id="color" type="color" value="#b7d1ff" title="Primary color (planets)" />
+      <span class="spacer"></span>
+      <label class="label">Drift <input class="toggle" id="drift" type="checkbox" checked /></label>
+    </div>
+    <div class="row">
+      <button class="btn" id="save" title="Save your masterpiece as an image">💾 Save</button>
+      <button class="btn" id="clear" title="Clear the canvas">🧽 Clear</button>
+      <button class="btn" id="undo" title="Undo last stroke">↩️ Undo</button>
+    </div>
+    <div class="hint">Tip: Drag on the canvas to paint. Comets also whoosh by on their own!</div>
+  </section>
+
+  <div class="tip">Hold <span class="kbd">Shift</span> to scatter extras • Double-tap to toggle panel</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('sky');
+  const ctx = canvas.getContext('2d');
+  let DPR = 1;
+
+  function resize(){
+    const { innerWidth:w, innerHeight:h, devicePixelRatio:pr } = window;
+    DPR = Math.min(2, pr || 1);
+    canvas.width = w * DPR; canvas.height = h * DPR; canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', resize, { passive: true });
+  resize();
+
+  // --------- Drawing model ---------
+  const entities = []; // {type, x, y, r, color, vx, vy, extra, life, maxLife}
+  const strokes = [];  // history for undo (indexes into entities)
+  let currentStroke = [];
+
+  const UI = {
+    brush: 'star',
+    size: document.getElementById('size'),
+    color: document.getElementById('color'),
+    drift: document.getElementById('drift'),
+  };
+
+  // Brush buttons
+  const brushButtons = {
+    star: document.getElementById('brush-star'),
+    planet: document.getElementById('brush-planet'),
+    comet: document.getElementById('brush-comet'),
+    sparkle: document.getElementById('brush-sparkle'),
+  };
+  function setBrush(name){
+    UI.brush = name;
+    Object.entries(brushButtons).forEach(([k,b]) => b.dataset.active = (k===name));
+  }
+  Object.entries(brushButtons).forEach(([k,b]) => b.addEventListener('click', () => setBrush(k)));
+
+  // Toggles
+  document.getElementById('clear').addEventListener('click', () => { entities.length = 0; strokes.length = 0; });
+  document.getElementById('undo').addEventListener('click', () => {
+    const last = strokes.pop();
+    if (!last) return;
+    // remove entities whose _sid matches last stroke id
+    for (let i = entities.length - 1; i >= 0; i--) if (entities[i]._sid === last) entities.splice(i,1);
+  });
+
+  // Save image
+  document.getElementById('save').addEventListener('click', () => {
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url; a.download = 'space-painter.png'; a.click();
+  });
+
+  // Panel show/hide on double-tap
+  const panel = document.querySelector('.panel');
+  let lastTap = 0;
+  window.addEventListener('pointerdown', (e) => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      panel.style.display = panel.style.display === 'none' ? '' : 'none';
+    }
+    lastTap = now;
+  }, { passive: true });
+
+  // --------- Helpers ---------
+  const rand = (a,b) => a + Math.random() * (b-a);
+  const TAU = Math.PI * 2;
+  function starPath(x,y,r,spikes=5){
+    const step = Math.PI / spikes; // inner/outer
+    ctx.beginPath();
+    let rot = Math.PI / 2 * 3;
+    let cx = x, cy = y;
+    let i=0;
+    ctx.moveTo(cx, cy - r);
+    for (i = 0; i < spikes; i++){
+      cx = x + Math.cos(rot) * r; cy = y + Math.sin(rot) * r; ctx.lineTo(cx, cy); rot += step;
+      cx = x + Math.cos(rot) * (r*0.45); cy = y + Math.sin(rot) * (r*0.45); ctx.lineTo(cx, cy); rot += step;
+    }
+    ctx.lineTo(x, y - r); ctx.closePath();
+  }
+
+  function drawGlow(x,y,r,alpha){
+    const g = ctx.createRadialGradient(x,y,0, x,y,r);
+    g.addColorStop(0, `rgba(255,255,255,${alpha})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill();
+  }
+
+  function addEntity(e){ entities.push(e); currentStroke.push(e); }
+
+  // Pointer drawing
+  let painting = false; let px=0, py=0;
+  function pointerPos(ev){
+    const rect = canvas.getBoundingClientRect();
+    return { x: (ev.clientX - rect.left), y: (ev.clientY - rect.top) };
+  }
+
+  canvas.addEventListener('pointerdown', (ev) => {
+    if (ev.button!==0) return;
+    painting = true; canvas.setPointerCapture(ev.pointerId);
+    const p = pointerPos(ev); px = p.x; py = p.y; beginStroke(p, ev.shiftKey);
+  });
+  canvas.addEventListener('pointermove', (ev) => {
+    if (!painting) return; const p = pointerPos(ev); drawDrag(p, ev.shiftKey); px=p.x; py=p.y; 
+  });
+  window.addEventListener('pointerup', (ev) => {
+    if (!painting) return; painting = false; endStroke();
+  });
+
+  function beginStroke(p, scatter){ currentStroke = []; emitBrush(p.x, p.y, px, py, scatter, true); }
+  function drawDrag(p, scatter){ emitBrush(p.x, p.y, px, py, scatter, false); }
+  function endStroke(){ if (currentStroke.length){ const id = Symbol('stroke'); for (const e of currentStroke) e._sid = id; strokes.push(id); currentStroke = []; } }
+
+  function emitBrush(x, y, lx, ly, scatter, first){
+    const size = +UI.size.value;
+    const color = UI.color.value;
+
+    if (UI.brush === 'star'){
+      const count = scatter ? 3 : 1;
+      for (let i=0;i<count;i++){
+        const r = rand(size*0.3, size*0.7);
+        const a = rand(0, TAU);
+        const dx = scatter ? Math.cos(a)*rand(0, size*1.2) : 0;
+        const dy = scatter ? Math.sin(a)*rand(0, size*1.2) : 0;
+        addEntity({ type:'star', x:x+dx, y:y+dy, r, color:'#fff', vx: rand(-.02,.02), vy: rand(-.02,.02), tw: rand(.6,1), rot: rand(0,TAU) });
+        // tiny glow speck
+        addEntity({ type:'speck', x:x+dx+rand(-4,4), y:y+dy+rand(-4,4), r:r*0.8, alpha: rand(0.2,0.45), vx: 0, vy: 0 });
+      }
+    }
+    else if (UI.brush === 'sparkle'){
+      const count = scatter ? 8 : 3;
+      for (let i=0;i<count;i++){
+        const r = rand(size*0.1, size*0.25);
+        const a = rand(0, TAU);
+        const d = rand(0, size*0.8);
+        addEntity({ type:'spark', x:x+Math.cos(a)*d, y:y+Math.sin(a)*d, r, life:0, maxLife: rand(60, 140), vx: rand(-.05,.05), vy: rand(-.05,.05) });
+      }
+    }
+    else if (UI.brush === 'planet'){
+      // base planet
+      const r = size;
+      addEntity({ type:'planet', x, y, r, color, ring: Math.random() < 0.6, tilt: rand(-0.6, 0.6), hue: rand(-20,20), vx: rand(-.01,.01), vy: rand(-.01,.01) });
+      // tiny moons
+      const moons = scatter ? 3 : rand(0,2)|0;
+      for (let i=0;i<moons;i++) addEntity({ type:'moon', x: x+rand(-r*1.8,r*1.8), y:y+rand(-r*1.8,r*1.8), r: rand(r*0.15, r*0.28), vx: rand(-.03,.03), vy: rand(-.03,.03)});
+      // glow
+      addEntity({ type:'glow', x, y, r: r*2.2, alpha: .15 });
+    }
+    else if (UI.brush === 'comet'){
+      const dx = x - lx, dy = y - ly; const sp = Math.hypot(dx,dy) || 1;
+      const dir = Math.atan2(dy, dx);
+      const speed = Math.min(3.2, 1 + sp*0.05);
+      addEntity({ type:'comet', x, y, r: size*0.5, dir, speed, tail: [], life:0, maxLife: 120+size*1.2 });
+    }
+  }
+
+  // Ambient comets
+  setInterval(() => {
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const y = rand(30, innerHeight-30);
+    const x = side==='left'? -40 : innerWidth+40;
+    const dir = side==='left' ? 0 : Math.PI; // move horizontally
+    const speed = rand(2.2, 3.5);
+    entities.push({ type:'comet', x, y, r: rand(10,18), dir, speed, tail: [], life:0, maxLife: 500 });
+  }, 6500);
+
+  // --------- Render loop ---------
+  function drawBackground(){
+    // deep vignette already via body background; add distant stars
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    for (let i=0;i<50;i++){
+      const x = (i*97 % innerWidth);
+      const y = (i*53 % innerHeight);
+      drawGlow(x, y, (i%7)+2, 0.05);
+    }
+    ctx.restore();
+  }
+
+  function step(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    drawBackground();
+
+    for (let i=0;i<entities.length;i++){
+      const e = entities[i];
+      // drift
+      if (UI.drift.checked){ e.x += (e.vx||0); e.y += (e.vy||0); }
+
+      // render
+      switch(e.type){
+        case 'speck': case 'glow': drawGlow(e.x, e.y, e.r, e.alpha||0.25); break;
+        case 'star': drawStar(e); break;
+        case 'spark': drawSpark(e); break;
+        case 'planet': drawPlanet(e); break;
+        case 'moon': drawMoon(e); break;
+        case 'comet': drawComet(e, i); break;
+      }
+    }
+
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  // --------- Drawing functions ---------
+  function drawStar(e){
+    ctx.save();
+    drawGlow(e.x, e.y, e.r*2.6, 0.18);
+    ctx.fillStyle = 'white';
+    ctx.shadowColor = 'rgba(255,255,255,0.6)';
+    ctx.shadowBlur = 10;
+    starPath(e.x, e.y, e.r, 5);
+    ctx.globalAlpha = e.tw; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function drawSpark(e){
+    e.life++; if (e.life>e.maxLife){ entities.splice(entities.indexOf(e),1); return; }
+    const t = e.life / e.maxLife;
+    const a = 1 - t;
+    drawGlow(e.x, e.y, e.r*6*(1+t), 0.08*a);
+    ctx.fillStyle = `rgba(255,255,255,${0.85*a})`;
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.r*(1+0.5*Math.sin(t*6.28)), 0, TAU); ctx.fill();
+    e.x += e.vx; e.y += e.vy;
+  }
+
+  function drawPlanet(e){
+    const g = ctx.createRadialGradient(e.x - e.r*0.4, e.y - e.r*0.4, e.r*0.2, e.x, e.y, e.r*1.2);
+    g.addColorStop(0, lighten(e.color, 25));
+    g.addColorStop(1, shade(e.color, -20));
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, TAU); ctx.fill();
+
+    if (e.ring){
+      ctx.save();
+      ctx.translate(e.x, e.y); ctx.rotate(e.tilt||0);
+      const rg = ctx.createLinearGradient(-e.r*1.6, 0, e.r*1.6, 0);
+      rg.addColorStop(0, 'rgba(255,255,255,0)');
+      rg.addColorStop(0.5, 'rgba(255,255,255,0.5)');
+      rg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.strokeStyle = rg; ctx.lineWidth = Math.max(2, e.r*0.35);
+      ctx.beginPath(); ctx.ellipse(0,0, e.r*1.6, e.r*0.6, 0, 0, TAU); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function drawMoon(e){
+    ctx.fillStyle = '#d9e2ff'; ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, TAU); ctx.fill();
+  }
+
+  function drawComet(e, idx){
+    e.life++; if (e.life>e.maxLife){ entities.splice(idx,1); return; }
+    // move
+    const sp = e.speed || 2.5; e.x += Math.cos(e.dir)*sp; e.y += Math.sin(e.dir)*sp;
+    e.tail.unshift({x:e.x, y:e.y}); if (e.tail.length> 30) e.tail.pop();
+    // trail
+    ctx.save();
+    for (let i=0;i<e.tail.length;i++){
+      const p = e.tail[i];
+      const t = 1 - i / e.tail.length;
+      drawGlow(p.x, p.y, (e.r||10) * (1.2 * t), 0.08 * t);
+    }
+    // head
+    const grd = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, (e.r||12)*1.6);
+    grd.addColorStop(0, 'rgba(255,255,255,0.95)');
+    grd.addColorStop(1, 'rgba(255,255,255,0.0)');
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(e.x, e.y, (e.r||12), 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+
+  // --------- Color utils ---------
+  function hexToRgb(hex){ hex = hex.replace('#',''); if (hex.length===3) hex = hex.split('').map(c=>c+c).join(''); const num = parseInt(hex,16); return {r:(num>>16)&255, g:(num>>8)&255, b:num&255}; }
+  function clamp(v,min,max){ return Math.min(max, Math.max(min, v)); }
+  function shade(hex, amt){ const {r,g,b} = hexToRgb(hex); return `rgb(${clamp(r+amt,0,255)}, ${clamp(g+amt,0,255)}, ${clamp(b+amt,0,255)})`; }
+  function lighten(hex, amt){ return shade(hex, amt); }
+})();
+</script>
+</body>
+</html>
