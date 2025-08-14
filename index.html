@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fun Zone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@300;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1: #10142a;
+      --bg2: #1c1f3f;
+      --halo1: #7aa8ff;
+      --halo2: #ffd480;
+      --halo3: #c9a7ff;
+      --card: rgba(255,255,255,0.9);
+      --card-border: rgba(255,255,255,0.75);
+      --ink: #2a2a2a;
+      --accent: #7aa8ff;
+      --accent2: #ffd86b;
+      --shadow: 0 15px 35px rgba(18,22,60,.35);
+    }
+    *{ box-sizing: border-box }
+    html, body { height:100%; margin:0; }
+    body{
+      font-family: 'Nunito', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 800px at 15% 20%, #202555 0%, transparent 60%),
+        radial-gradient(900px 700px at 80% 10%, #2a2f66 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    /* Floating glow orbs for whimsy */
+    .orb{ position: fixed; pointer-events:none; filter: blur(60px); opacity:.35; mix-blend-mode: screen; }
+    .orb.one{ width: 280px; height:280px; left:-60px; top:-40px; background: radial-gradient(circle at 30% 30%, var(--halo1), transparent 60%); animation: float 9s ease-in-out infinite; }
+    .orb.two{ width: 340px; height:340px; right:-60px; top:20vh; background: radial-gradient(circle at 60% 40%, var(--halo2), transparent 60%); animation: float 12s ease-in-out infinite reverse; }
+    .orb.three{ width: 300px; height:300px; left: 30vw; bottom:-120px; background: radial-gradient(circle at 50% 50%, var(--halo3), transparent 60%); animation: float 11s ease-in-out infinite; }
+    @keyframes float{ 0%,100%{ transform: translateY(0)} 50%{ transform: translateY(-10px)} }
+
+    /* Header */
+    header{ position: relative; padding: 28px 18px 10px; text-align:center; }
+    .badge{ display:inline-flex; align-items:center; gap:10px; background: rgba(255,255,255,0.9); border:2px solid var(--card-border); padding:8px 14px; border-radius: 999px; font-weight:800; box-shadow: var(--shadow); }
+    .title{ font-family: 'Baloo 2', cursive; font-size: clamp(28px, 5vw, 54px); margin: 14px 0 6px; color: #fff; text-shadow: 0 4px 22px rgba(122,168,255,.45), 0 0 50px rgba(201,167,255,.35); }
+    .subtitle{ color: #eef; opacity:.95; font-weight:600; margin: 0 0 14px; }
+
+    /* Big link grid */
+    .grid{ position: relative; margin: 0 auto; max-width: 1100px; padding: 10px 18px 90px; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+    a.tile{ text-decoration:none; color: inherit; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 8px; min-height: 180px; border-radius: 26px; padding: 18px; 
+      background: var(--card); border: 2px solid var(--card-border); box-shadow: var(--shadow); position: relative; overflow: hidden; transition: transform .08s ease, box-shadow .2s ease; }
+    a.tile:focus-visible{ outline: 4px solid var(--accent); outline-offset: 3px }
+    a.tile:hover{ transform: translateY(-3px); box-shadow: 0 18px 36px rgba(0,0,0,.20) }
+    .emoji{ font-size: 54px; line-height: 1; }
+    .label{ font-family:'Baloo 2', cursive; font-size: 24px; color:#1d2147; text-align:center }
+    .desc{ font-size: 13px; opacity:.8; text-align:center }
+
+    /* playful corner sparkles on hover */
+    a.tile::after{ content:""; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,0.2)); transform: scale(0); transition: transform .25s ease; }
+    a.tile:hover::after{ transform: scale(1) }
+
+    /* Footer */
+    footer{ position:fixed; inset-inline:0; bottom: 0; display:flex; justify-content:center; padding: 8px 12px 14px; }
+    .tip{ background: rgba(255,255,255,0.9); border:2px solid var(--card-border); border-radius: 18px; padding: 6px 12px; font-size: 13px; box-shadow: var(--shadow) }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background:#eef2ff; border:1px solid #dfe6ff; padding:1px 6px; border-radius:8px }
+
+    /* Bouncy entry */
+    .pop{ animation: pop .45s ease both; }
+    @keyframes pop{ from{ transform: scale(.95); opacity:0 } to{ transform: scale(1); opacity:1 } }
+  </style>
+</head>
+<body>
+  <!-- softly glowing background doodles -->
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+  <div class="orb three"></div>
+
+  <header>
+    <span class="badge pop">🪄 Welcome to the Fun Zone!</span>
+    <h1 class="title pop" style="animation-delay:.05s">Fun Zone</h1>
+    <p class="subtitle pop" style="animation-delay:.1s">Tap a big button to jump into a mini‑app 🎉</p>
+  </header>
+
+  <main class="grid" aria-label="Main links">
+    <!-- Update these hrefs to your actual html filenames -->
+    <a class="tile pop" style="animation-delay:.15s" href="space-painter.html" data-title="Space Painter">
+      <div class="emoji">🎨</div>
+      <div class="label">Space Painter</div>
+      <div class="desc">Draw stars, planets, and comets</div>
+    </a>
+
+    <a class="tile pop" style="animation-delay:.18s" href="canvas-hues.html" data-title="Canvas Hues">
+      <div class="emoji">🖌️</div>
+      <div class="label">Canvas Hues</div>
+      <div class="desc">Paint with bristly acrylic brushes</div>
+    </a>
+
+    <a class="tile pop" style="animation-delay:.21s" href="word-guess.html" data-title="Word Guess">
+      <div class="emoji">🔤</div>
+      <div class="label">Word Guess</div>
+      <div class="desc">Can you find the secret word?</div>
+    </a>
+
+    <a class="tile pop" style="animation-delay:.24s" href="maze-runner.html" data-title="Maze Runner">
+      <div class="emoji">🧭</div>
+      <div class="label">Maze Runner</div>
+      <div class="desc">Find the exit before the timer!</div>
+    </a>
+
+    <a class="tile pop" style="animation-delay:.27s" href="music-toy.html" data-title="Music Toy">
+      <div class="emoji">🎵</div>
+      <div class="label">Music Toy</div>
+      <div class="desc">Make silly tunes</div>
+    </a>
+
+    <a class="tile pop" style="animation-delay:.30s" href="about.html" data-title="About">
+      <div class="emoji">💫</div>
+      <div class="label">About</div>
+      <div class="desc">What is Fun Zone?</div>
+    </a>
+  </main>
+
+  <footer>
+    <div class="tip">Hint: Use <span class="kbd">Tab</span> to move and <span class="kbd">Enter</span> to launch.</div>
+  </footer>
+
+  <script>
+  // Tiny confetti burst when a tile is clicked, then navigate
+  (function(){
+    const tiles = Array.from(document.querySelectorAll('a.tile'));
+    const confetti = createConfetti();
+    document.body.appendChild(confetti.canvas);
+
+    tiles.forEach(tile => tile.addEventListener('click', (e) => {
+      // Let middle-click / ctrl-click behave normally
+      if (e.button!==0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      e.preventDefault();
+      const rect = tile.getBoundingClientRect();
+      const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2;
+      confetti.burst(cx, cy);
+      const href = tile.getAttribute('href');
+      setTimeout(() => { window.location.href = href; }, 350);
+    }));
+
+    function createConfetti(){
+      const canvas = document.createElement('canvas'); canvas.style.position='fixed'; canvas.style.inset=0; canvas.style.pointerEvents='none'; canvas.width = innerWidth; canvas.height = innerHeight;
+      const ctx = canvas.getContext('2d'); let parts=[]; let raf;
+      function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+      window.addEventListener('resize', resize);
+      function burst(x, y){
+        for (let i=0;i<80;i++){
+          parts.push({ x, y, vx:(Math.random()*2-1)*6, vy:(Math.random()*-1-1)*6, g:0.22+Math.random()*0.1, s: 3+Math.random()*4, r: Math.random()*Math.PI, c: pick(['#7aa8ff','#ffd86b','#c9a7ff','#98f5ff','#ffe3a3']) });
+        }
+        if (!raf) loop();
+      }
+      function loop(){
+        raf = requestAnimationFrame(loop); ctx.clearRect(0,0,canvas.width, canvas.height);
+        for (let i=parts.length-1;i>=0;i--){
+          const p = parts[i]; p.vy += p.g; p.x += p.vx; p.y += p.vy; p.r += 0.1;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s*.5, -p.s*.5, p.s, p.s*0.6); ctx.restore();
+          if (p.y > canvas.height+40) parts.splice(i,1);
+        }
+        if (!parts.length){ cancelAnimationFrame(raf); raf=null; }
+      }
+      function pick(arr){ return arr[(Math.random()*arr.length)|0]; }
+      return { canvas, burst };
+    }
+  })();
+  </script>
+</body>
+</html>
